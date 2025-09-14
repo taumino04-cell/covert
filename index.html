@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PEPEW to RVN Converter</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md border border-gray-100">
+        <div class="text-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Crypto Converter</h1>
+            <p class="text-gray-600">Convert between cryptocurrencies</p>
+        </div>
+        
+        <div class="space-y-6">
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="from-crypto" class="block text-sm font-medium text-gray-700 mb-2">
+                        From:
+                    </label>
+                    <select 
+                        id="from-crypto"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 text-lg bg-white"
+                    >
+                        <option value="pepepow">PEPEW</option>
+                        <option value="ravencoin">RVN</option>
+                        <option value="bitcoin">BTC</option>
+                        <option value="ethereum">ETH</option>
+                        <option value="dogecoin">DOGE</option>
+                        <option value="litecoin">LTC</option>
+                        <option value="cardano">ADA</option>
+                        <option value="polkadot">DOT</option>
+                    </select>
+                    <div id="from-price" class="text-sm text-gray-600 mt-2 min-h-[20px]">
+                        <!-- Price will be displayed here -->
+                    </div>
+                </div>
+                <div>
+                    <label for="to-crypto" class="block text-sm font-medium text-gray-700 mb-2">
+                        To:
+                    </label>
+                    <select 
+                        id="to-crypto"
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 text-lg bg-white"
+                    >
+                        <option value="ravencoin">RVN</option>
+                        <option value="pepepow">PEPEW</option>
+                        <option value="bitcoin">BTC</option>
+                        <option value="ethereum">ETH</option>
+                        <option value="dogecoin">DOGE</option>
+                        <option value="litecoin">LTC</option>
+                        <option value="cardano">ADA</option>
+                        <option value="polkadot">DOT</option>
+                    </select>
+                    <div id="to-price" class="text-sm text-gray-600 mt-2 min-h-[20px]">
+                        <!-- Price will be displayed here -->
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <label for="crypto-amount" class="block text-sm font-medium text-gray-700 mb-2">
+                    <span id="amount-label">Enter PEPEW Amount:</span>
+                </label>
+                <input 
+                    type="number" 
+                    id="crypto-amount" 
+                    placeholder="e.g., 1000" 
+                    min="0" 
+                    step="0.0001"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition duration-200 text-lg"
+                >
+            </div>
+            
+            <button 
+                onclick="convert()" 
+                id="convert-btn"
+                class="w-full bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition duration-200 transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            >
+                <span id="convert-text">Convert</span>
+                <span id="convert-loading" class="hidden">
+                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white inline" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Converting...
+                </span>
+            </button>
+        </div>
+        
+        <div class="mt-6 space-y-3">
+            <div id="result" class="text-green-600 font-medium text-center p-3 rounded-lg bg-green-50 hidden"></div>
+            <div id="error" class="text-red-600 font-medium text-center p-3 rounded-lg bg-red-50 hidden"></div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
