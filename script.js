@@ -13,7 +13,8 @@ class CryptoConverter {
             'dogecoin': 'DOGE',
             'litecoin': 'LTC',
             'cardano': 'ADA',
-            'polkadot': 'DOT'
+            'polkadot': 'DOT',
+            'digibyte': 'DGB',
         };
         
         this.elements = {};
