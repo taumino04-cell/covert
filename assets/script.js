@@ -279,13 +279,13 @@ class CryptoConverter {
         this.isConverting = isLoading;
         this.elements.convertBtn.disabled = isLoading;
 
-        if (isLoading) {
-            this.elements.convertText.classList.add('hidden');
-            // this.elements.convertLoading.classList.remove('hidden');
-        } else {
-            this.elements.convertText.classList.remove('hidden');
-            // this.elements.convertLoading.classList.add('hidden');
-        }
+        // if (isLoading) {
+        //     this.elements.convertText.classList.add('hidden');
+        //     this.elements.convertLoading.classList.remove('hidden');
+        // } else {
+        //     this.elements.convertText.classList.remove('hidden');
+        //     this.elements.convertLoading.classList.add('hidden');
+        // }
     }
 
     /**
