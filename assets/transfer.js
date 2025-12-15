@@ -27,8 +27,15 @@ async function handleSubmit(event) {
     if (usdPrice === null) {
       throw new Error("Unable to read usd_price from response");
     }
+    const rateResp = await fetch("https://api.exchangerate.fun/latest?base=USD&symbols=VND");
+    if (!rateResp.ok) throw new Error(`Rate HTTP ${rateResp.status}`);
+    const rateJson = await rateResp.json();
+    const usdToVnd = rateJson?.rates?.VND;
+    if (typeof usdToVnd !== "number") throw new Error("Unable to read VND rate");
+
     const total = amount * usdPrice;
-    resultEl.textContent = `Price: $${usdPrice.toFixed(6)} | Amount: ${amount} => USD ${total.toFixed(6)}`;
+    const totalVnd = total * usdToVnd;
+    resultEl.textContent = `Price: $${usdPrice.toFixed(6)} | Amount: ${amount} => USD ${total.toFixed(6)} | VND ${totalVnd.toLocaleString("vi-VN", { maximumFractionDigits: 0 })}`;
   } catch (err) {
     resultEl.textContent = `Error: ${err.message}`;
   }
