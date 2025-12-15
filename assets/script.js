@@ -16,14 +16,14 @@ class CryptoConverter {
             'polkadot': 'DOT',
             'digibyte': 'DGB',
         };
-        
+
         this.elements = {};
         this.isConverting = false;
-        
+
         // Price cache with 1-minute expiration
         this.priceCache = new Map();
         this.cacheExpiration = 60 * 1000; // 1 minute in milliseconds
-        
+
         this.init();
     }
 
@@ -56,6 +56,19 @@ class CryptoConverter {
         };
     }
 
+    randomDelay(min, max) {
+        const minDelay = Number(min) || 1
+        const maxDelay = Number(max) || 2
+        const random = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
+        return Math.floor(random / 1000) * 1000;
+    }
+
+    async triggerDelay() {
+        const delay = this.randomDelay(1000, 2000);
+        console.log({delay})
+        await new Promise(d => setTimeout(d, delay));
+    }
+
     /**
      * Bind event listeners
      */
@@ -64,7 +77,7 @@ class CryptoConverter {
             this.updateAmountLabel();
             this.updatePrices();
         });
-        
+
         this.elements.toCrypto.addEventListener('change', () => {
             this.updatePrices();
         });
@@ -85,13 +98,13 @@ class CryptoConverter {
     getCachedPrice(coinId) {
         const cached = this.priceCache.get(coinId);
         if (!cached) return null;
-        
+
         const now = Date.now();
         if (now - cached.timestamp > this.cacheExpiration) {
             this.priceCache.delete(coinId);
             return null;
         }
-        
+
         return cached.price;
     }
 
@@ -127,11 +140,11 @@ class CryptoConverter {
     getCacheStatus(coinId) {
         const cached = this.priceCache.get(coinId);
         if (!cached) return '';
-        
+
         const now = Date.now();
         const ageInSeconds = Math.floor((now - cached.timestamp) / 1000);
         const remainingSeconds = 60 - ageInSeconds;
-        
+
         if (remainingSeconds > 0) {
             return ` <span class="text-xs text-blue-500">(cached ${remainingSeconds}s)</span>`;
         }
@@ -159,13 +172,13 @@ class CryptoConverter {
             const response = await fetch(
                 `https://price-api.crypto.com/price/v1/token-price/${coinId}`
             );
-            
+
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            
+
             const data = await response.json();
-            
+
             // if (data.length > 0 && data[0].current_price !== null) {
             //     const price = data[0].current_price;
             //     this.setCachedPrice(coinId, price);
@@ -248,9 +261,9 @@ class CryptoConverter {
             const fromCacheStatus = this.getCacheStatus(fromCrypto);
             const toCacheStatus = this.getCacheStatus(toCrypto);
 
-            this.elements.fromPrice.innerHTML = 
+            this.elements.fromPrice.innerHTML =
                 `<span class="font-medium">${fromName}:</span> ${this.formatPrice(fromPrice)}${fromCacheStatus}`;
-            this.elements.toPrice.innerHTML = 
+            this.elements.toPrice.innerHTML =
                 `<span class="font-medium">${toName}:</span> ${this.formatPrice(toPrice)}${toCacheStatus}`;
         } catch (error) {
             this.elements.fromPrice.innerHTML = '<span class="text-red-500">Price unavailable</span>';
@@ -265,13 +278,13 @@ class CryptoConverter {
     setLoadingState(isLoading) {
         this.isConverting = isLoading;
         this.elements.convertBtn.disabled = isLoading;
-        
+
         if (isLoading) {
             this.elements.convertText.classList.add('hidden');
-            this.elements.convertLoading.classList.remove('hidden');
+            // this.elements.convertLoading.classList.remove('hidden');
         } else {
             this.elements.convertText.classList.remove('hidden');
-            this.elements.convertLoading.classList.add('hidden');
+            // this.elements.convertLoading.classList.add('hidden');
         }
     }
 
@@ -338,14 +351,21 @@ class CryptoConverter {
 
         this.clearMessages();
         this.setLoadingState(true);
+        this.showResult("Loading...")
 
         try {
             const validation = this.validateInputs();
-            
+
             if (!validation.isValid) {
                 this.showError(validation.error);
                 return;
             }
+
+            const rateResp = await fetch("https://api.exchangerate.fun/latest?base=USD&symbols=VND");
+            if (!rateResp.ok) throw new Error(`Rate HTTP ${rateResp.status}`);
+            const rateJson = await rateResp.json();
+            const usdToVnd = rateJson?.rates?.VND;
+            if (typeof usdToVnd !== "number") throw new Error("Unable to read VND rate");
 
             const { amount, fromCrypto, toCrypto } = validation;
 
@@ -356,18 +376,22 @@ class CryptoConverter {
             ]);
 
             // Calculate conversion: FROM -> USD -> TO
-            const usdAmount = amount * fromPrice;
-            const convertedAmount = usdAmount / toPrice;
+            const totalUsdAmount = amount * fromPrice;
+            const convertedAmount = totalUsdAmount / toPrice;
+            const totalVndAmount = totalUsdAmount * usdToVnd;
+
 
             // Get display names
             const fromName = this.getCryptoDisplayName(fromCrypto);
             const toName = this.getCryptoDisplayName(toCrypto);
 
+            // trigger delay
+            await this.triggerDelay()
+
             // Format and display result
-            const resultMessage = 
-                `${amount.toFixed(4)} ${fromName} = ${convertedAmount.toFixed(8)} ${toName} ` +
-                `(via USD: $${usdAmount.toFixed(6)})`;
-            
+            const resultMessage =
+                `${amount.toFixed(4)} ${fromName} = ${convertedAmount.toFixed(8)} ${toName} \n* USD ${totalUsdAmount.toFixed(6)} \n* VND ${totalVndAmount.toLocaleString("vi-VN", { maximumFractionDigits: 0 })}`;
+
             this.showResult(resultMessage);
 
         } catch (error) {
@@ -382,7 +406,7 @@ class CryptoConverter {
 // Initialize the application when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     const converter = new CryptoConverter();
-    
+
     // Make convert function globally available for onclick handler
     window.convert = () => converter.convert();
 });

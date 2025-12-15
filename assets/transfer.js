@@ -35,7 +35,7 @@ async function handleSubmit(event) {
 
     const total = amount * usdPrice;
     const totalVnd = total * usdToVnd;
-    resultEl.textContent = `Price: $${usdPrice.toFixed(6)} | Amount: ${amount} \n=> USD ${total.toFixed(6)} \n=> VND ${totalVnd.toLocaleString("vi-VN", { maximumFractionDigits: 0 })}`;
+    resultEl.textContent = `Price: $${usdPrice.toFixed(6)} | Amount: ${amount} \n* USD ${total.toFixed(6)} \n* VND ${totalVnd.toLocaleString("vi-VN", { maximumFractionDigits: 0 })}`;
   } catch (err) {
     resultEl.textContent = `Error: ${err.message}`;
   }
