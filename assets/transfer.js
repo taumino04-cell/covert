@@ -19,15 +19,34 @@ async function handleSubmit(event) {
   const amount = parseFloat(document.querySelector('input[name="amount"]').value || "0");
   resultEl.textContent = "Loading...";
 
+  // https://base.exbitron.com/api
+
   try {
-    const resp = await fetch(`https://price-api.crypto.com/price/v1/token-price/${coinId}`);
+    const payload = {
+      "operationName": "GetMarketDynamics",
+      "variables": {
+        "market": `${coinId}-USDT`
+      },
+      "query": "query GetMarketDynamics($market: String!) { marketDynamics(market: $market) { marketId startPrice lastPrice amount24h lowPrice highPrice volume24h __typename } }"
+    }
+
+    const proxyUrl = `http://localhost:3000/proxy?url=${encodeURIComponent('https://base.exbitron.com/api')}`;
+
+    const resp = await fetch(proxyUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const json = await resp.json();
-    const usdPrice = extractUsdPrice(json);
-    if (usdPrice === null) {
+    const usdPrice = json?.data?.marketDynamics?.lastPrice;
+    if (usdPrice === null || usdPrice === undefined) {
       throw new Error("Unable to read usd_price from response");
     }
-    const rateResp = await fetch("https://api.exchangerate.fun/latest?base=USD&symbols=VND");
+    const rateUrl = `http://localhost:3000/proxy?url=${encodeURIComponent('https://api.exchangerate.fun/latest?base=USD&symbols=VND')}`;
+    const rateResp = await fetch(rateUrl);
     if (!rateResp.ok) throw new Error(`Rate HTTP ${rateResp.status}`);
     const rateJson = await rateResp.json();
     const usdToVnd = rateJson?.rates?.VND;
