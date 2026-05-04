@@ -153,8 +153,11 @@ class CryptoConverter {
 
         try {
             console.log(`Fetching fresh price for ${coinId}...`);
+            // https://price-api.crypto.com/price/v1/token-price/ravencoin
+            // https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=ravencoin
+
             const response = await fetch(
-                `https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=${coinId}`
+                `https://price-api.crypto.com/price/v1/token-price/${coinId}`
             );
             
             if (!response.ok) {
@@ -163,13 +166,15 @@ class CryptoConverter {
             
             const data = await response.json();
             
-            if (data.length > 0 && data[0].current_price !== null) {
-                const price = data[0].current_price;
-                this.setCachedPrice(coinId, price);
-                return price;
-            } else {
-                throw new Error(`No price data found for ${coinId}`);
-            }
+            // if (data.length > 0 && data[0].current_price !== null) {
+            //     const price = data[0].current_price;
+            //     this.setCachedPrice(coinId, price);
+            //     return price;
+            // } else {
+            //     throw new Error(`No price data found for ${coinId}`);
+            // }
+            this.setCachedPrice(coinId, data.usd_price);
+            return data.usd_price;
         } catch (error) {
             console.error(`Error fetching price for ${coinId}:`, error);
             throw error;
