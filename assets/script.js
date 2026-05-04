@@ -65,7 +65,7 @@ class CryptoConverter {
 
     async triggerDelay() {
         const delay = this.randomDelay(1000, 2000);
-        console.log({delay})
+        console.log({ delay })
         await new Promise(d => setTimeout(d, delay));
     }
 
@@ -168,16 +168,35 @@ class CryptoConverter {
             console.log(`Fetching fresh price for ${coinId}...`);
             // https://price-api.crypto.com/price/v1/token-price/ravencoin
             // https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=ravencoin
+            // https://base.exbitron.com/api
+
+            const payload = {
+                "operationName": "GetMarketDynamics",
+                "variables": {
+                    "market": `${coinId}-USDT`
+                },
+                "query": "query GetMarketDynamics($market: String!) { marketDynamics(market: $market) { marketId startPrice lastPrice amount24h lowPrice highPrice volume24h __typename } }"
+            }
+
+            const proxyUrl = `http://localhost:3000/proxy?url=${encodeURIComponent('https://base.exbitron.com/api')}`;
 
             const response = await fetch(
-                `https://price-api.crypto.com/price/v1/token-price/${coinId}`
+                proxyUrl,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(payload),
+                }
             );
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
 
-            const data = await response.json();
+            const json = await response.json();
+            const usdtPrice = json.data.marketDynamics.lastPrice
 
             // if (data.length > 0 && data[0].current_price !== null) {
             //     const price = data[0].current_price;
@@ -186,8 +205,8 @@ class CryptoConverter {
             // } else {
             //     throw new Error(`No price data found for ${coinId}`);
             // }
-            this.setCachedPrice(coinId, data.usd_price);
-            return data.usd_price;
+            this.setCachedPrice(coinId, usdtPrice);
+            return usdtPrice;
         } catch (error) {
             console.error(`Error fetching price for ${coinId}:`, error);
             throw error;
@@ -361,7 +380,8 @@ class CryptoConverter {
                 return;
             }
 
-            const rateResp = await fetch("https://api.exchangerate.fun/latest?base=USD&symbols=VND");
+            const rateUrl = `http://localhost:3000/proxy?url=${encodeURIComponent('https://api.exchangerate.fun/latest?base=USD&symbols=VND')}`;
+            const rateResp = await fetch(rateUrl);
             if (!rateResp.ok) throw new Error(`Rate HTTP ${rateResp.status}`);
             const rateJson = await rateResp.json();
             const usdToVnd = rateJson?.rates?.VND;
