@@ -6,7 +6,15 @@
     <title>Converter</title>
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen flex items-center justify-center p-4">
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen">
+    <header class="flex items-center justify-between px-6 py-4 bg-white/80 backdrop-blur border-b border-gray-200">
+      <div class="text-lg font-semibold text-gray-800">Converter</div>
+      <nav class="space-x-4 text-sm font-medium">
+        <a href="index.html" class="text-blue-600 hover:text-blue-500">Home</a>
+        <a href="transfer.html" class="text-gray-700 hover:text-blue-500">Transfer</a>
+      </nav>
+    </header>
+    <div class="flex items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md border border-gray-100">
         <div class="text-center mb-8">
             <h1 class="text-3xl font-bold text-gray-800 mb-2">Crypto Converter</h1>
@@ -32,6 +40,7 @@
                         <option value="cardano">ADA</option>
                         <option value="polkadot">DOT</option>
                         <option value="digibyte">DGB</option>
+                        <option value="microbitcoin">MBC</option>
                     </select>
                     <div id="from-price" class="text-sm text-gray-600 mt-2 min-h-[20px]">
                         <!-- Price will be displayed here -->
@@ -54,6 +63,7 @@
                         <option value="cardano">ADA</option>
                         <option value="polkadot">DOT</option>
                         <option value="digibyte">DGB</option>
+                        <option value="microbitcoin">MBC</option>
                     </select>
                     <div id="to-price" class="text-sm text-gray-600 mt-2 min-h-[20px]">
                         <!-- Price will be displayed here -->
@@ -96,6 +106,7 @@
             <div id="error" class="text-red-600 font-medium text-center p-3 rounded-lg bg-red-50 hidden"></div>
         </div>
     </div>
-    <script src="script.js"></script>
+    </div>
+    <script src="./assets/script.js"></script>
 </body>
 </html>
