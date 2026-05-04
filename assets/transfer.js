@@ -1,63 +1,76 @@
-// Fetch price from crypto.com price API and show amount * usd_price.
-const form = document.querySelector("form");
-const resultEl = document.getElementById("result");
+const form = document.querySelector('form');
+const resultEl = document.getElementById('result');
 
-function extractUsdPrice(data) {
-  if (!data) return null;
-  if (typeof data.usd_price === "number") return data.usd_price;
-  if (data.data) {
-    if (typeof data.data.usd_price === "number") return data.data.usd_price;
-    if (data.data.price && typeof data.data.price.usd_price === "number") return data.data.price.usd_price;
-    if (typeof data.data === "number") return data.data;
-  }
-  return null;
+const cryptoNames = {
+  pepepow: 'PEPEW',
+  ravencoin: 'RVN',
+  bitcoin: 'BTC',
+  ethereum: 'ETH',
+  dogecoin: 'DOGE',
+  litecoin: 'LTC',
+  cardano: 'ADA',
+  polkadot: 'DOT',
+  digibyte: 'DGB',
+  mazacoin: 'MAZA',
+};
+
+function getCryptoDisplayName(coinId) {
+  return cryptoNames[coinId] || coinId.toUpperCase();
 }
 
 async function handleSubmit(event) {
   event.preventDefault();
-  const coinId = document.querySelector('select[name="crypto"]').value;
-  const amount = parseFloat(document.querySelector('input[name="amount"]').value || "0");
-  resultEl.textContent = "Loading...";
 
-  // https://base.exbitron.com/api
+  const coinId = document.querySelector('select[name="crypto"]').value;
+  const amount = parseFloat(document.querySelector('input[name="amount"]').value);
+
+  if (isNaN(amount) || amount <= 0) {
+    resultEl.textContent = 'Please enter a valid amount.';
+    return;
+  }
+
+  resultEl.textContent = 'Loading...';
 
   try {
-    const payload = {
-      "operationName": "GetMarketDynamics",
-      "variables": {
-        "market": `${coinId}-USDT`
-      },
-      "query": "query GetMarketDynamics($market: String!) { marketDynamics(market: $market) { marketId startPrice lastPrice amount24h lowPrice highPrice volume24h __typename } }"
-    }
+    const coinSymbol = getCryptoDisplayName(coinId);
 
-    const proxyUrl = `http://localhost:3000/proxy?url=${encodeURIComponent('https://base.exbitron.com/api')}`;
+    // Fetch price + VND rate song song
+    const [priceResp, rateResp] = await Promise.all([
+      fetch('api/proxy', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          operationName: 'GetMarketDynamics',
+          variables: { market: `${coinSymbol}-USDT` },
+          query: 'query GetMarketDynamics($market: String!) { marketDynamics(market: $market) { lastPrice __typename } }',
+        }),
+      }),
+      fetch('https://open.er-api.com/v6/latest/USD'),
+    ]);
 
-    const resp = await fetch(proxyUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(payload),
-    });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    const json = await resp.json();
-    const usdPrice = json?.data?.marketDynamics?.lastPrice;
-    if (usdPrice === null || usdPrice === undefined) {
-      throw new Error("Unable to read usd_price from response");
-    }
-    const rateUrl = `http://localhost:3000/proxy?url=${encodeURIComponent('https://api.exchangerate.fun/latest?base=USD&symbols=VND')}`;
-    const rateResp = await fetch(rateUrl);
+    if (!priceResp.ok) throw new Error(`Proxy HTTP ${priceResp.status}`);
     if (!rateResp.ok) throw new Error(`Rate HTTP ${rateResp.status}`);
-    const rateJson = await rateResp.json();
-    const usdToVnd = rateJson?.rates?.VND;
-    if (typeof usdToVnd !== "number") throw new Error("Unable to read VND rate");
 
-    const total = amount * usdPrice;
-    const totalVnd = total * usdToVnd;
-    resultEl.textContent = `Price: $${usdPrice.toFixed(6)} | Amount: ${amount} \n* USD ${total.toFixed(6)} \n* VND ${totalVnd.toLocaleString("vi-VN", { maximumFractionDigits: 0 })}`;
+    const priceJson = await priceResp.json();
+    const rateJson = await rateResp.json();
+
+    const usdPrice = priceJson?.data?.marketDynamics?.lastPrice;
+    if (usdPrice == null) throw new Error('Unable to read price from response');
+
+    const usdToVnd = rateJson?.rates?.VND;
+    if (typeof usdToVnd !== 'number') throw new Error('Unable to read VND rate');
+
+    const totalUsd = amount * usdPrice;
+    const totalVnd = totalUsd * usdToVnd;
+
+    resultEl.textContent =
+      `Price: $${usdPrice.toFixed(6)} | Amount: ${amount}\n` +
+      `* USD ${totalUsd.toFixed(6)}\n` +
+      `* VND ${totalVnd.toLocaleString('vi-VN', { maximumFractionDigits: 0 })}`;
+
   } catch (err) {
     resultEl.textContent = `Error: ${err.message}`;
   }
 }
 
-form.addEventListener("submit", handleSubmit);
+form.addEventListener('submit', handleSubmit);
